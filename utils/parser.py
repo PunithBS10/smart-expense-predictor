@@ -19,5 +19,23 @@ def parse_bank_statement(df: pd.DataFrame) -> pd.DataFrame:
     df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
     df["Amount"] = pd.to_numeric(df["Amount"], errors='coerce')
     df = df.dropna(subset=["Date", "Amount"])
+    df["Category"] = df["Description"].apply(categorize_transaction)
 
-    return df[["Date", "Amount", "Description"]]
+    return df[["Date", "Amount", "Description", "Category"]]
+
+
+def categorize_transaction(description):
+    desc = description.lower()
+
+    if any(keyword in desc for keyword in ["paytm", "phonepe", "gpay"]):
+        return "UPI Payment"
+    elif any(keyword in desc for keyword in ["karb", "sbin", "yesb"]):
+        return "Bank Transfer"
+    elif any(keyword in desc for keyword in ["bill", "recharge", "electricity"]):
+        return "Utilities"
+    elif any(keyword in desc for keyword in ["fuel", "ioc"]):
+        return "Fuel"
+    elif any(keyword in desc for keyword in ["amazon", "flipkart", "shopping"]):
+        return "Shopping"
+    else:
+        return "Others"
